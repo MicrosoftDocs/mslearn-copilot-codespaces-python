@@ -20,7 +20,6 @@
 	"customizations": {
 		"codespaces": {
 			"openFiles": [
-			  "README.md",
 			  "webapp/main.py",
 			  "webapp/static/index.html"
 			]
