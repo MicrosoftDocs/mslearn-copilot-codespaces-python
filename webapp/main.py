@@ -18,6 +18,10 @@ class Body(BaseModel):
     length: Union[int, None] = 20
 
 
+class Text(BaseModel):
+    text: str
+
+
 @app.get('/')
 def root():
     html_path = join(static_path, "index.html")
