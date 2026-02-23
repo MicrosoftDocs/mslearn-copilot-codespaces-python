@@ -1,10 +1,12 @@
-from typing import Union
+from typing import Annotated, Union
+from math import ceil
 from os.path import dirname, abspath, join
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from webapp.models.token import PaginatedResponse
 from webapp.models.user import UserCreate, UserUpdate, UserResponse
 from webapp.services.token_service import TokenService
 from webapp.services.user_service import UserService
@@ -14,6 +16,8 @@ static_path = join(current_dir, "static")
 
 app = FastAPI()
 app.mount("/ui", StaticFiles(directory=static_path), name="ui")
+
+MAX_TOKENS = 1000
 
 # Singleton service instances shared across requests
 _token_service = TokenService()
@@ -48,6 +52,34 @@ def generate(body: Body, service: TokenService = Depends(get_token_service)):
     }
     """
     return {'token': service.generate(body.length)}
+
+
+@app.post('/generate/paginated', response_model=PaginatedResponse)
+def generate_paginated(
+    body: Body,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 10,
+    service: TokenService = Depends(get_token_service),
+):
+    """
+    Generate a paginated list of pseudo-random token IDs.
+
+    - **page**: page number (1-indexed)
+    - **page_size**: number of tokens per page (1–100)
+    - **total**: server-side cap of 1000 tokens
+    """
+    total = MAX_TOKENS
+    total_pages = ceil(total / page_size)
+    offset = (page - 1) * page_size
+    items_count = max(0, min(page_size, total - offset))
+    items = [service.generate(body.length) for _ in range(items_count)]
+    return PaginatedResponse(
+        items=items,
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+    )
 
 
 @app.get('/ping')

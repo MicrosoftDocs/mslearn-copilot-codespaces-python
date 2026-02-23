@@ -1,3 +1,5 @@
 fastapi==0.109.1
 pydantic
 uvicorn[standard]
+pytest
+httpx>=0.23.0,<0.28
