@@ -61,12 +61,22 @@ def generate_paginated(
     page_size: Annotated[int, Query(ge=1, le=100)] = 10,
     service: TokenService = Depends(get_token_service),
 ):
-    """
-    Generate a paginated list of pseudo-random token IDs.
+    """Generate a paginated list of pseudo-random token IDs.
 
-    - **page**: page number (1-indexed)
-    - **page_size**: number of tokens per page (1–100)
-    - **total**: server-side cap of 1000 tokens
+    Tokens are generated on demand up to a server-side cap of
+    ``MAX_TOKENS`` (1000). Pages beyond the last page return an empty
+    ``items`` list.
+
+    Args:
+        body: Request body containing the desired token character length.
+        page: 1-indexed page number to retrieve. Must be >= 1.
+        page_size: Number of tokens per page. Must be between 1 and 100
+            inclusive.
+        service: Token generation service (injected via FastAPI DI).
+
+    Returns:
+        A :class:`PaginatedResponse` containing the generated tokens for
+        the requested page together with pagination metadata.
     """
     total = MAX_TOKENS
     total_pages = ceil(total / page_size)
