@@ -1,21 +1,17 @@
-import os
-import base64
-from typing import Union
 from os.path import dirname, abspath, join
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+
+from webapp.routers import tokens, users
 
 current_dir = dirname(abspath(__file__))
 static_path = join(current_dir, "static")
 
 app = FastAPI()
 app.mount("/ui", StaticFiles(directory=static_path), name="ui")
-
-
-class Body(BaseModel):
-    length: Union[int, None] = 20
+app.include_router(tokens.router)
+app.include_router(users.router)
 
 
 @app.get('/')
@@ -24,14 +20,8 @@ def root():
     return FileResponse(html_path)
 
 
-@app.post('/generate')
-def generate(body: Body):
-    """
-    Generate a pseudo-random token ID of twenty characters by default. Example POST request body:
+@app.get('/ping')
+def ping():
+    return {'status': 'ok'}
 
-    {
-        "length": 20
-    }
-    """
-    string = base64.b64encode(os.urandom(64))[:body.length].decode('utf-8')
-    return {'token': string}
+

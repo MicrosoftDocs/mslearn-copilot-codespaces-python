@@ -1,3 +1,6 @@
 fastapi==0.109.1
-pydantic
+pydantic>=2
 uvicorn[standard]
+pytest
+pytest-mock
+httpx<0.28
