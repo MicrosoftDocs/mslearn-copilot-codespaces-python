@@ -20,6 +20,11 @@ def root():
     return FileResponse(html_path)
 
 
+@app.get('/health')
+def health():
+    return {'status': 'ok'}
+
+
 @app.get('/ping')
 def ping():
     return {'status': 'ok'}
